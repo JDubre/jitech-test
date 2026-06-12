@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>JITECH · Test Diagnóstico Junior</title>
+  <meta name="theme-color" content="#0f172a">
+  <link rel="manifest" href="manifest.json">
+  <script src="config.js"></script>
+  <style>
+    :root {
+      --bg:#0f172a;--panel:#111827;--panel2:#1f2937;--text:#f8fafc;--muted:#94a3b8;
+      --accent:#38b2f6;--ok:#22c55e;--warn:#f59e0b;--bad:#ef4444;--line:#334155;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at top,#1e293b 0,#0f172a 48%,#020617 100%);color:var(--text);min-height:100vh}
+    header{position:sticky;top:0;z-index:10;background:rgba(15,23,42,.96);border-bottom:1px solid var(--line);backdrop-filter:blur(10px)}
+    .topbar{max-width:980px;margin:0 auto;padding:12px 14px;display:flex;gap:10px;align-items:center;justify-content:space-between}
+    .brand{font-weight:900;letter-spacing:.3px} .brand span{color:var(--accent)}
+    .timer{font-variant-numeric:tabular-nums;padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:#020617;font-weight:900;min-width:92px;text-align:center}
+    .timer.warn{color:var(--warn);border-color:var(--warn)} .timer.bad{color:var(--bad);border-color:var(--bad)}
+    .wrap{max-width:980px;margin:0 auto;padding:16px 14px 80px}
+    .card{background:linear-gradient(180deg,rgba(31,41,55,.95),rgba(17,24,39,.98));border:1px solid var(--line);border-radius:20px;padding:18px;margin:14px 0;box-shadow:0 18px 40px rgba(0,0,0,.25)}
+    h1{font-size:1.6rem;margin:0 0 6px} h2{font-size:1.15rem;margin:0 0 12px;color:#e2e8f0}
+    p{line-height:1.45;color:#dbeafe} .muted{color:var(--muted)} .small{font-size:.86rem}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px} @media(max-width:700px){.grid{grid-template-columns:1fr}.topbar{align-items:flex-start}}
+    label{display:block;font-size:.9rem;color:#cbd5e1;margin:6px 0}
+    input,textarea,select{width:100%;padding:12px;border-radius:12px;border:1px solid #475569;background:#020617;color:var(--text);font-size:1rem}
+    textarea{min-height:88px;resize:vertical}
+    .btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+    button{appearance:none;border:0;border-radius:12px;padding:12px 16px;background:var(--accent);color:#00111c;font-weight:900;cursor:pointer}
+    button.secondary{background:#334155;color:#e5e7eb;border:1px solid #475569} button.danger{background:var(--bad);color:#fff} button:disabled{opacity:.45;cursor:not-allowed}
+    .q{border:1px solid #334155;background:rgba(2,6,23,.35);border-radius:16px;padding:14px;margin:12px 0}
+    .q-title{font-weight:800;margin-bottom:10px} .section{font-size:.83rem;color:#93c5fd;margin-bottom:4px}
+    .opt{display:flex;gap:10px;align-items:flex-start;border:1px solid #334155;border-radius:12px;padding:10px;margin:8px 0;background:#020617;cursor:pointer}
+    .opt input{width:auto;margin-top:3px} .pill{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:#020617;border:1px solid #334155;color:#cbd5e1;font-size:.85rem;margin:3px 4px 3px 0}
+    .status{display:none;margin-top:12px;padding:12px;border-radius:12px;border:1px solid var(--line);background:#020617} .status.show{display:block}
+    .ok{border-color:rgba(34,197,94,.5);color:#bbf7d0} .warnbox{border-color:rgba(245,158,11,.6);color:#fde68a} .badbox{border-color:rgba(239,68,68,.6);color:#fecaca}
+    .hidden{display:none!important} .locked{opacity:.72} .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+    .footerNote{font-size:.84rem;color:#94a3b8;margin-top:18px}
+  </style>
+</head>
+<body>
+<header>
+  <div class="topbar">
+    <div>
+      <div class="brand">JITECH <span>Test Diagnóstico</span></div>
+      <div class="muted small">Ayudante Técnico de Terreno · Versión Junior · Envío automático</div>
+    </div>
+    <div id="timer" class="timer">20:00</div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section id="intro" class="card">
+    <h1>Test diagnóstico JITECH</h1>
+    <p>Este test evalúa conocimientos básicos, criterio de seguridad y capacidad para apoyar trabajos de terreno en telecomunicaciones y energía.</p>
+    <div>
+      <span class="pill">⏱️ 20 minutos</span>
+      <span class="pill">📱 Compatible Android</span>
+      <span class="pill">📩 Envío automático</span>
+      <span class="pill">📊 Registro en Google Sheets</span>
+    </div>
+    <p class="muted">Instrucción: responder sin apoyo externo. Las respuestas podrán validarse posteriormente en una entrevista corta.</p>
+
+    <div id="configWarning" class="status warnbox"></div>
+
+    <div class="grid">
+      <div><label>Nombre completo *</label><input id="candidateName" autocomplete="name" required></div>
+      <div><label>RUT o ID *</label><input id="candidateId" required></div>
+      <div><label>Correo *</label><input id="candidateEmail" type="email" autocomplete="email" required></div>
+      <div><label>Teléfono *</label><input id="candidatePhone" autocomplete="tel" required></div>
+    </div>
+    <div class="btnrow">
+      <button id="startBtn">Iniciar test</button>
+      <button class="secondary" id="resetBtn" type="button">Reiniciar prueba local</button>
+    </div>
+    <div class="footerNote">Control anti-IA básico: contador continuo, bloqueo al terminar, registro de cambios de pestaña/ventana y bloqueo de copiar/pegar. No reemplaza entrevista técnica.</div>
+  </section>
+
+  <form id="quizForm" class="hidden" autocomplete="off">
+    <section class="card">
+      <h2>Preguntas</h2>
+      <p class="muted">Seleccione una alternativa. Las preguntas de caso práctico se revisan manualmente.</p>
+      <div id="questions"></div>
+      <div class="btnrow">
+        <button id="finishBtn" type="button">Finalizar y enviar resultado</button>
+        <button class="secondary" type="button" id="saveBtn">Guardar avance local</button>
+      </div>
+      <div id="warningBox" class="status warnbox"></div>
+    </section>
+  </form>
+
+  <section id="result" class="card hidden">
+    <h2>Resultado enviado</h2>
+    <div id="submitStatus" class="status show ok"></div>
+    <p>El resultado fue enviado automáticamente para revisión interna de JITECH. No es necesario descargar archivos.</p>
+    <p class="muted small">Código de intento: <span id="attemptCode" class="mono"></span></p>
+    <div class="btnrow">
+      <button id="printBtn" type="button" class="secondary">Imprimir comprobante</button>
+    </div>
+  </section>
+
+  <form id="postForm" method="POST" target="hiddenFrame" class="hidden">
+    <input type="hidden" name="payload" id="payloadField">
+  </form>
+  <iframe name="hiddenFrame" id="hiddenFrame" class="hidden"></iframe>
+</main>
+
+<script>
+const CONFIG = {
+  durationMinutes: (window.JITECH_CONFIG && window.JITECH_CONFIG.TEST_DURATION_MINUTES) || 20,
+  appVersion: (window.JITECH_CONFIG && window.JITECH_CONFIG.APP_VERSION) || "JITECH-PWA-AUTO",
+  endpoint: (window.JITECH_CONFIG && window.JITECH_CONFIG.APPS_SCRIPT_URL) || ""
+};
+
+const questions = [{"id": "q1", "section": "Electricidad básica", "text": "¿Qué instrumento se utiliza para medir resistencia?", "options": ["Voltímetro", "Wattmetro", "Amperímetro", "Ohmetro"]}, {"id": "q2", "section": "Electricidad básica", "text": "¿Qué instrumento se usa para medir tensión eléctrica?", "options": ["Voltímetro", "Wattmetro", "Amperímetro", "Ohmetro"]}, {"id": "q3", "section": "Electricidad básica", "text": "¿En qué tipo de circuito la corriente es la misma en todos los elementos?", "options": ["Circuito mixto", "Circuito paralelo", "Circuito serie", "Circuito abierto"]}, {"id": "q4", "section": "Electricidad básica", "text": "¿Cuál es un sistema de protección para instalaciones eléctricas?", "options": ["Línea eléctrica", "Transformador", "Puesta a tierra", "Conductor"]}, {"id": "q5", "section": "Electricidad básica", "text": "Antes de intervenir un equipo eléctrico, ¿qué debe hacer primero?", "options": ["Abrirlo para revisar", "Verificar condición segura, energía y autorización", "Tocarlo para ver si está energizado", "Cambiar cables de inmediato"]}, {"id": "q6", "section": "Electricidad básica", "text": "Si un equipo eléctrico presenta olor a quemado, ¿qué corresponde?", "options": ["Continuar trabajando", "Avisar, aislar el riesgo y no intervenir sin autorización", "Echar agua", "Taparlo y seguir"]}, {"id": "q7", "section": "Electricidad básica", "text": "¿Qué mide un amperímetro?", "options": ["Tensión", "Corriente", "Resistencia", "Frecuencia"]}, {"id": "q8", "section": "Seguridad y terreno", "text": "Antes de un trabajo en altura, ¿qué debe revisar?", "options": ["Solo que haya escalera", "EPP, arnés, autorización, condición física y entorno", "Solo que el cliente esté presente", "Solo que el trabajo sea rápido"]}, {"id": "q9", "section": "Seguridad y terreno", "text": "Si el arnés está dañado o no está disponible, ¿qué debe hacer?", "options": ["Subir igual con cuidado", "Usar una cuerda alternativa", "No subir y avisar al responsable", "Pedir ayuda para subir más rápido"]}, {"id": "q10", "section": "Seguridad y terreno", "text": "Si recibe una instrucción técnica que no entiende, ¿qué corresponde?", "options": ["Ejecutarla igual", "Preguntar y confirmar antes de actuar", "Cambiarla según criterio propio", "Esperar sin avisar"]}, {"id": "q11", "section": "Seguridad y terreno", "text": "Al finalizar un trabajo en sitio, ¿qué debe quedar ordenado?", "options": ["Solo el informe", "Herramientas, residuos, cables, materiales y zona de trabajo", "Solo la camioneta", "Nada si el equipo funciona"]}, {"id": "q12", "section": "Telecomunicaciones básicas", "text": "¿Cómo se describe normalmente el ancho de banda?", "options": ["Bytes por segundo", "Bits por segundo", "Centímetros", "Voltios"]}, {"id": "q13", "section": "Telecomunicaciones básicas", "text": "¿Cuál es el propósito principal de un router?", "options": ["Enviar paquetes según direcciones lógicas/IP", "Medir voltaje", "Ordenar cables", "Alimentar equipos eléctricos"]}, {"id": "q14", "section": "Telecomunicaciones básicas", "text": "¿Qué se puede crear con una VLAN?", "options": ["Dominios de broadcast", "Motores eléctricos", "Puestas a tierra", "Transformadores"]}, {"id": "q15", "section": "Telecomunicaciones básicas", "text": "¿Cuál es el máximo ancho de banda típico soportado por cable Categoría 5e?", "options": ["10 Mbps", "50 Mbps", "100 Mbps", "1000 Mbps"]}, {"id": "q16", "section": "Telecomunicaciones básicas", "text": "¿Qué diferencia principal existe entre fibra monomodo y multimodo?", "options": ["Monomodo se usa para mayores distancias; multimodo para distancias más cortas", "Multimodo siempre transmite energía eléctrica", "Monomodo no transmite datos", "No existe diferencia"]}, {"id": "q17", "section": "Telecomunicaciones básicas", "text": "¿Qué es un patch cord o user cord de red?", "options": ["Cable usado para conectar un equipo a una red o punto de datos", "Cable de puesta a tierra", "Cable de alimentación eléctrica", "Cable coaxial de TV únicamente"]}, {"id": "q18", "section": "Telecomunicaciones básicas", "text": "¿Qué debe hacerse con cables y equipos instalados en terreno?", "options": ["Dejarlos sin identificación si funcionan", "Rotularlos y dejarlos ordenados", "Cortarlos si sobran", "Ocultarlos sin informar"]}, {"id": "q19", "section": "Perfil operativo", "text": "¿Tiene licencia de conducir vigente?", "options": ["Sí, clase B", "Sí, otra clase", "No"], "profile": true}, {"id": "q20", "section": "Perfil operativo", "text": "¿Tiene disponibilidad para trabajo en terreno y traslado de materiales/equipos?", "options": ["Sí", "No", "Depende del horario"], "profile": true}, {"id": "q21", "section": "Perfil operativo", "text": "¿Tiene curso vigente de trabajo en altura?", "options": ["Sí, vigente", "Lo tuve, pero no está vigente", "No tengo", "No sé"], "profile": true}, {"id": "q22", "section": "Perfil operativo", "text": "¿Ha trabajado en terreno?", "options": ["Sí, en telecomunicaciones", "Sí, en electricidad", "Sí, en logística/bodega/traslado", "No"], "profile": true}, {"id": "q23", "section": "Perfil operativo", "text": "¿Tiene experiencia trasladando materiales o herramientas?", "options": ["Sí", "No", "Solo ocasionalmente"], "profile": true}, {"id": "q24", "section": "Caso práctico", "text": "Llegas a un sitio y el técnico responsable te pide apoyar una instalación, pero observas cables desordenados en el área de trabajo y falta una herramienta. ¿Qué harías primero? Máximo 4 líneas.", "open": true}, {"id": "q25", "section": "Caso práctico", "text": "Estás en terreno y no sabes si un equipo está energizado. ¿Qué haces antes de tocarlo o intervenirlo? Máximo 4 líneas.", "open": true}];
+
+let state = {
+  started:false, finished:false, startTime:null, endTime:null, finishedAt:null,
+  focusLost:0, pasteBlocked:0, answers:{}, candidate:{}, attemptId:null, submitted:false
+};
+
+const storageKey = "jitech_test_auto_state_v1";
+
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function saveState(){localStorage.setItem(storageKey, JSON.stringify(state));}
+function loadState(){
+  const raw = localStorage.getItem(storageKey);
+  if(!raw) return;
+  try{
+    const saved = JSON.parse(raw);
+    if(saved && saved.started && !saved.finished){
+      state = saved; document.getElementById("intro").classList.add("hidden"); document.getElementById("quizForm").classList.remove("hidden"); renderQuestions(); restoreAnswers(); startTimerLoop();
+    } else if(saved && saved.finished){
+      state = saved; document.getElementById("intro").classList.add("hidden"); document.getElementById("quizForm").classList.add("hidden"); showFinal();
+    }
+  }catch(e){}
+}
+
+function endpointReady(){return CONFIG.endpoint && !CONFIG.endpoint.includes("PEGA_AQUI") && CONFIG.endpoint.startsWith("https://script.google.com/");}
+function checkConfig(){
+  if(!endpointReady()){
+    const w = document.getElementById("configWarning");
+    w.classList.add("show");
+    w.innerHTML = "<b>Configuración pendiente:</b> falta pegar la URL /exec de Google Apps Script en <span class='mono'>config.js</span>. Puedes probar la app, pero no enviará resultados.";
+  }
+}
+
+function renderQuestions(){
+  const box = document.getElementById("questions");
+  box.innerHTML = "";
+  questions.forEach((q, idx)=>{
+    const div = document.createElement("div");
+    div.className = "q";
+    let html = `<div class="section">${escapeHtml(q.section)}</div><div class="q-title">${idx+1}. ${escapeHtml(q.text)}</div>`;
+    if(q.open){
+      html += `<textarea name="${q.id}" maxlength="600" placeholder="Respuesta breve. Máximo 4 líneas."></textarea>`;
+    } else {
+      q.options.forEach(opt=>{
+        html += `<label class="opt"><input type="radio" name="${q.id}" value="${escapeHtml(opt)}"><span>${escapeHtml(opt)}</span></label>`;
+      });
+    }
+    div.innerHTML = html;
+    box.appendChild(div);
+  });
+  document.querySelectorAll("input,textarea").forEach(el=>{el.addEventListener("change", collectAnswers); el.addEventListener("input", collectAnswers);});
+}
+
+function collectAnswers(){
+  questions.forEach(q=>{
+    if(q.open){
+      const t = document.querySelector(`textarea[name="${q.id}"]`);
+      if(t) state.answers[q.id] = t.value.trim();
+    } else {
+      const checked = document.querySelector(`input[name="${q.id}"]:checked`);
+      if(checked) state.answers[q.id] = checked.value;
+    }
+  });
+  saveState();
+}
+
+function restoreAnswers(){
+  Object.entries(state.answers || {}).forEach(([qid,val])=>{
+    const radio = document.querySelector(`input[name="${qid}"][value="${CSS.escape(val)}"]`);
+    if(radio) radio.checked = true;
+    const t = document.querySelector(`textarea[name="${qid}"]`);
+    if(t) t.value = val;
+  });
+}
+
+function startTest(){
+  const name = document.getElementById("candidateName").value.trim();
+  const id = document.getElementById("candidateId").value.trim();
+  const email = document.getElementById("candidateEmail").value.trim();
+  const phone = document.getElementById("candidatePhone").value.trim();
+  if(!name || !id || !email || !phone){alert("Complete nombre, RUT/ID, correo y teléfono antes de iniciar."); return;}
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){alert("Ingrese un correo válido."); return;}
+  state.started = true; state.finished = false;
+  state.startTime = new Date().toISOString();
+  state.endTime = new Date(Date.now() + CONFIG.durationMinutes*60*1000).toISOString();
+  state.candidate = {name,id,email,phone};
+  state.focusLost = 0; state.pasteBlocked = 0; state.answers = {};
+  state.attemptId = "JIT-" + Date.now().toString(36).toUpperCase() + "-" + Math.random().toString(36).slice(2,6).toUpperCase();
+  state.submitted = false;
+  saveState();
+  document.getElementById("intro").classList.add("hidden");
+  document.getElementById("quizForm").classList.remove("hidden");
+  renderQuestions(); startTimerLoop();
+}
+
+function remainingMs(){return state.endTime ? new Date(state.endTime).getTime() - Date.now() : CONFIG.durationMinutes*60*1000;}
+function startTimerLoop(){
+  updateTimer();
+  const interval = setInterval(()=>{updateTimer(); if(state.finished || remainingMs()<=0){clearInterval(interval); if(!state.finished) finishTest(true);}}, 500);
+}
+function updateTimer(){
+  const ms = Math.max(0, remainingMs());
+  const total = Math.ceil(ms/1000);
+  const m = Math.floor(total/60), s = total%60;
+  const el = document.getElementById("timer");
+  el.textContent = `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+  el.classList.toggle("warn", total <= 300 && total > 60);
+  el.classList.toggle("bad", total <= 60);
+}
+
+function lockForm(){
+  document.querySelectorAll("input,textarea,button").forEach(el=>{if(el.id !== "printBtn") el.disabled = true;});
+  document.getElementById("quizForm").classList.add("locked");
+}
+
+function finishTest(auto=false){
+  collectAnswers();
+  state.finished = true; state.finishedAt = new Date().toISOString(); state.autoClosed = auto;
+  saveState(); lockForm(); submitResult(); showFinal();
+  document.getElementById("quizForm").classList.add("hidden");
+}
+
+function minutesUsed(){
+  const start = state.startTime ? new Date(state.startTime).getTime() : Date.now();
+  const end = state.finishedAt ? new Date(state.finishedAt).getTime() : Date.now();
+  return Math.max(0, Math.round((end-start)/60000));
+}
+
+function buildPayload(){
+  return {
+    appVersion: CONFIG.appVersion,
+    attemptId: state.attemptId,
+    candidate: state.candidate,
+    startedAt: state.startTime,
+    finishedAt: state.finishedAt,
+    minutesUsed: minutesUsed(),
+    focusLost: state.focusLost,
+    pasteBlocked: state.pasteBlocked,
+    autoClosed: !!state.autoClosed,
+    answers: state.answers,
+    userAgent: navigator.userAgent,
+    pageUrl: location.href
+  };
+}
+
+function submitResult(){
+  if(state.submitted) return;
+  const payload = buildPayload();
+  if(!endpointReady()){
+    state.submitted = false; saveState(); return;
+  }
+  const form = document.getElementById("postForm");
+  form.action = CONFIG.endpoint;
+  document.getElementById("payloadField").value = JSON.stringify(payload);
+  form.submit();
+  state.submitted = true;
+  saveState();
+}
+
+function showFinal(){
+  document.getElementById("result").classList.remove("hidden");
+  document.getElementById("attemptCode").textContent = state.attemptId || "";
+  const box = document.getElementById("submitStatus");
+  if(endpointReady() && state.submitted){
+    box.className = "status show ok";
+    box.innerHTML = "<b>Enviado:</b> resultado remitido automáticamente a JITECH y registrado para revisión.";
+  } else {
+    box.className = "status show badbox";
+    box.innerHTML = "<b>No enviado:</b> falta configurar la URL de Apps Script en config.js. Avise al evaluador.";
+  }
+}
+
+function resetLocal(){
+  if(confirm("Esto borra solo el avance local de este dispositivo. ¿Continuar?")){localStorage.removeItem(storageKey); location.reload();}
+}
+
+document.addEventListener("visibilitychange",()=>{if(state.started && !state.finished && document.hidden){state.focusLost++; saveState(); const w=document.getElementById("warningBox"); w.classList.add("show"); w.textContent="Se registró un cambio de pestaña/ventana. Continúe el test.";}});
+window.addEventListener("blur",()=>{if(state.started && !state.finished){state.focusLost++; saveState();}});
+document.addEventListener("copy",e=>{if(state.started && !state.finished){e.preventDefault(); state.pasteBlocked++; saveState();}});
+document.addEventListener("paste",e=>{if(state.started && !state.finished){e.preventDefault(); state.pasteBlocked++; saveState(); alert("Copiar/pegar está deshabilitado durante el test.");}});
+document.getElementById("startBtn").addEventListener("click", startTest);
+document.getElementById("finishBtn").addEventListener("click", ()=>finishTest(false));
+document.getElementById("saveBtn").addEventListener("click", ()=>{collectAnswers(); alert("Avance guardado en este dispositivo.");});
+document.getElementById("resetBtn").addEventListener("click", resetLocal);
+document.getElementById("printBtn").addEventListener("click", ()=>window.print());
+if("serviceWorker" in navigator){navigator.serviceWorker.register("./sw.js").catch(()=>{});}
+checkConfig(); loadState();
+</script>
+</body>
+</html>
