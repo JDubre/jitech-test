@@ -111,7 +111,7 @@
 <script>
 const CONFIG = {
   durationMinutes: (window.JITECH_CONFIG && window.JITECH_CONFIG.TEST_DURATION_MINUTES) || 20,
-  appVersion: (window.JITECH_CONFIG && window.JITECH_CONFIG.APP_VERSION) || "JITECH-PWA-AUTO-FIX-RESET",
+  appVersion: (window.JITECH_CONFIG && window.JITECH_CONFIG.APP_VERSION) || "JITECH-PWA-V1.1-ESTABLE",
   endpoint: (window.JITECH_CONFIG && window.JITECH_CONFIG.APPS_SCRIPT_URL) || ""
 };
 
@@ -238,14 +238,25 @@ function updateTimer(){
 }
 
 function lockForm(){
-  document.querySelectorAll("input,textarea,button").forEach(el=>{if(el.id !== "printBtn") el.disabled = true;});
+  // Importante: no deshabilitar postForm ni payloadField, porque un input disabled no se envía.
+  document.querySelectorAll("#quizForm input,#quizForm textarea,#quizForm button,#intro input,#intro button").forEach(el=>{
+    if(el.id !== "printBtn" && el.id !== "newAttemptBtn") el.disabled = true;
+  });
   document.getElementById("quizForm").classList.add("locked");
 }
 
 function finishTest(auto=false){
   collectAnswers();
-  state.finished = true; state.finishedAt = new Date().toISOString(); state.autoClosed = auto;
-  saveState(); lockForm(); submitResult(); showFinal();
+  state.finished = true;
+  state.finishedAt = new Date().toISOString();
+  state.autoClosed = auto;
+  saveState();
+
+  // Enviar ANTES de bloquear pantalla. Si se bloquea antes, payload puede viajar vacío.
+  submitResult();
+
+  lockForm();
+  showFinal();
   document.getElementById("quizForm").classList.add("hidden");
 }
 
@@ -275,12 +286,28 @@ function buildPayload(){
 function submitResult(){
   if(state.submitted) return;
   const payload = buildPayload();
+
   if(!endpointReady()){
-    state.submitted = false; saveState(); return;
+    state.submitted = false;
+    saveState();
+    return;
   }
+
   const form = document.getElementById("postForm");
+  const payloadField = document.getElementById("payloadField");
+
   form.action = CONFIG.endpoint;
-  document.getElementById("payloadField").value = JSON.stringify(payload);
+  payloadField.disabled = false;
+  payloadField.value = JSON.stringify(payload);
+
+  // Control defensivo: si por alguna razón payload queda vacío, no declaramos enviado.
+  if(!payloadField.value || payloadField.value.length < 20){
+    alert("Error local: payload vacío antes de enviar. Recargue la página y reintente.");
+    state.submitted = false;
+    saveState();
+    return;
+  }
+
   form.submit();
   state.submitted = true;
   saveState();
@@ -300,7 +327,9 @@ function showFinal(){
 }
 
 function resetLocal(){
-  if(confirm("Esto borra solo el avance local de este dispositivo. ¿Continuar?")){localStorage.removeItem(storageKey); location.reload();}
+  if(confirm("Esto borra solo el avance local de este dispositivo. ¿Continuar?")){
+    clearAttemptAndRestart();
+  }
 }
 
 document.addEventListener("visibilitychange",()=>{if(state.started && !state.finished && document.hidden){state.focusLost++; saveState(); const w=document.getElementById("warningBox"); w.classList.add("show"); w.textContent="Se registró un cambio de pestaña/ventana. Continúe el test.";}});
