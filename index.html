@@ -98,6 +98,7 @@
     <p class="muted small">Código de intento: <span id="attemptCode" class="mono"></span></p>
     <div class="btnrow">
       <button id="printBtn" type="button" class="secondary">Imprimir comprobante</button>
+      <button id="newAttemptBtn" type="button" class="danger">Nueva prueba / limpiar intento local</button>
     </div>
   </section>
 
@@ -110,7 +111,7 @@
 <script>
 const CONFIG = {
   durationMinutes: (window.JITECH_CONFIG && window.JITECH_CONFIG.TEST_DURATION_MINUTES) || 20,
-  appVersion: (window.JITECH_CONFIG && window.JITECH_CONFIG.APP_VERSION) || "JITECH-PWA-AUTO-FIX-PAYLOAD",
+  appVersion: (window.JITECH_CONFIG && window.JITECH_CONFIG.APP_VERSION) || "JITECH-PWA-AUTO-FIX-RESET",
   endpoint: (window.JITECH_CONFIG && window.JITECH_CONFIG.APPS_SCRIPT_URL) || ""
 };
 
@@ -122,6 +123,18 @@ let state = {
 };
 
 const storageKey = "jitech_test_auto_state_v1";
+
+function clearAttemptAndRestart(){
+  localStorage.removeItem(storageKey);
+  const cleanUrl = location.origin + location.pathname;
+  history.replaceState(null, "", cleanUrl);
+  location.reload();
+}
+
+if (new URLSearchParams(location.search).get("reset") === "1") {
+  localStorage.removeItem(storageKey);
+  history.replaceState(null, "", location.origin + location.pathname);
+}
 
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 function saveState(){localStorage.setItem(storageKey, JSON.stringify(state));}
@@ -299,6 +312,8 @@ document.getElementById("finishBtn").addEventListener("click", ()=>finishTest(fa
 document.getElementById("saveBtn").addEventListener("click", ()=>{collectAnswers(); alert("Avance guardado en este dispositivo.");});
 document.getElementById("resetBtn").addEventListener("click", resetLocal);
 document.getElementById("printBtn").addEventListener("click", ()=>window.print());
+const newAttemptBtn = document.getElementById("newAttemptBtn");
+if(newAttemptBtn){ newAttemptBtn.addEventListener("click", resetLocal); }
 if("serviceWorker" in navigator){navigator.serviceWorker.register("./sw.js").catch(()=>{});}
 checkConfig(); loadState();
 </script>

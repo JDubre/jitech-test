@@ -1,4 +1,4 @@
-const CACHE_NAME = "jitech-test-auto-v1";
+const CACHE_NAME = "jitech-test-auto-v2-reset";
 const FILES = ["./", "./index.html", "./config.js", "./manifest.json", "./sw.js"];
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(FILES)));
